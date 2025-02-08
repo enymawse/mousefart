@@ -1,0 +1,29 @@
+{
+  "name": "mousefart",
+  "version": "1.0.0-alpha.1",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "import": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "npx tsc",
+    "prepublishOnly": "npm run build",
+    "pack": "npm pack --pack-destination ~/projects"
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.7.9"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "eslint": "^9.19.0",
+    "prettier": "^3.4.2",
+    "standard-version": "^9.5.0",
+    "typescript": "^5.7.3"
+  }
+}
