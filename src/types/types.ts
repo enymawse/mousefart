@@ -1,5 +1,9 @@
+// types.ts - Contains type definitions for various entities in the Whisparr application.
+
+// Define an ExclusionMap type, a map of strings to Exclusion objects.
 type ExclusionMap = Map<string, Exclusion>;
 
+// Define options for adding a movie or studio, including root folder path, quality profile, and tags.
 type Options = {
   rootFolderPath: string;
   qualityProfile: number;
@@ -7,54 +11,28 @@ type Options = {
   tags: number[];
 };
 
+// Define the structure of the OriginalLanguage object.
 type OriginalLanguage = {
   id: number;
   name: string;
 };
 
+// Define the structure of an Image, including its type, URL, and remote URL.
 type Image = {
   coverType: string;
   url: string;
   remoteUrl: string;
 };
 
-type Movie = {
-  title: string;
-  originalLanguage: OriginalLanguage;
-  sortTitle: string;
-  status: string;
-  overview: string;
-  releaseDate: string;
-  images: Image[];
-  year: number;
-  studioTitle: string;
-  studioForeignId: string;
-  qualityProfileId: number;
-  monitored: boolean;
-  isAvailable: boolean;
-  folderName: string;
-  runtime: number;
-  cleanTitle: string;
-  tmdbId: number;
-  foreignId: string;
-  stashId: string;
-  titleSlug: string;
-  folder: string;
-  genres: string[];
-  tags: Tag[];
-  added: string;
-  ratings: Record<string, unknown>;
-  credits: unknown[];
-  itemType: string;
-};
-
+// Define the structure of a LookupSceneResponse, which contains movie data.
 type LookupSceneResponse = {
   foreignId: string;
-  movie: WhisparrScene;
+  movie: Scene;
   id: number;
 };
 
-type WhisparrScene = {
+// Define the structure of a Scene, which represents a scene in Whisparr.
+type Scene = {
   title: string;
   sortTitle: string;
   sizeOnDisk: number;
@@ -78,11 +56,11 @@ type WhisparrScene = {
   tags: Tag[];
   added: string;
   foreignId: string;
-  movie: Movie;
   id: number;
 };
 
-type WhisparrCommandResponse = {
+// Define the structure of a CommandResponse, which contains data about a command in Whisparr.
+type CommandResponse = {
   name: string;
   commandName: string;
   message: string;
@@ -111,48 +89,7 @@ type WhisparrCommandResponse = {
   id: number;
 };
 
-type MoviePayload = {
-  title: string;
-  studio: string;
-  foreignId: string;
-  monitored: boolean;
-  rootFolderPath: string;
-  addOptions: {
-    searchForMovie: boolean;
-  };
-  qualityProfileId: number;
-  tags: number[];
-};
-
-type PerformerPayload = {
-  tags: number[];
-  foreignId: string;
-  searchOnAdd: boolean;
-  qualityProfileId: number;
-  rootFolderPath: string;
-  monitored: boolean;
-};
-
-type StudioPayload = {
-  foreignId: string;
-  searchOnAdd: boolean;
-  qualityProfileId: number;
-  rootFolderPath: string;
-  monitored: boolean;
-  tags: number[];
-};
-
-type ExclusionPayload = {
-  foreignId: string;
-  movieTitle: string;
-  movieYear: number;
-};
-
-type CommandPayload = {
-  name: string;
-  movieIds: number[];
-};
-
+// Define the structure of a Quality object, representing quality attributes for media.
 type Quality = {
   id: number;
   name: string;
@@ -160,6 +97,7 @@ type Quality = {
   resolution: number;
 };
 
+// Define the structure of a QualityItem object, representing quality settings for a specific item.
 type QualityItem = {
   quality?: Quality;
   items: QualityItem[];
@@ -168,13 +106,13 @@ type QualityItem = {
   id?: number;
 };
 
+// Define the structure of a Language object, representing language details.
 type Language = {
   id: number;
   name: string;
 };
 
-type FormatItem = unknown;
-
+// Define the structure of a QualityProfile, which includes various quality settings and format items.
 type QualityProfile = {
   name: string;
   upgradeAllowed: boolean;
@@ -182,11 +120,12 @@ type QualityProfile = {
   items: QualityItem[];
   minFormatScore: number;
   cutoffFormatScore: number;
-  formatItems: FormatItem[];
+  formatItems: unknown[];
   language: Language;
   id: number;
 };
 
+// Define the structure of a RootFolder, representing a folder where media is stored.
 type RootFolder = {
   path: string;
   accessible: boolean;
@@ -195,13 +134,15 @@ type RootFolder = {
   id: number;
 };
 
+// Define the structure of an UnmappedFolder, representing an unmapped folder within a RootFolder.
 type UnmappedFolder = {
   name: string;
   path: string;
   relativePath: string;
 };
 
-type WhisparrPerformer = {
+// Define the structure of a Performer, representing performer details in Whisparr.
+type Performer = {
   fullName: string;
   gender: string;
   hairColor: string;
@@ -225,7 +166,8 @@ type WhisparrPerformer = {
   id: number;
 };
 
-type WhisparrStudio = {
+// Define the structure of a Studio, representing studio details in Whisparr.
+type Studio = {
   foreignId: string;
   id: number;
   monitored: boolean;
@@ -236,8 +178,7 @@ type WhisparrStudio = {
   title: string;
 };
 
-type ExclusionList = Exclusion[];
-
+// Define the structure of an Exclusion object, representing an exclusion entry in Whisparr.
 type Exclusion = {
   foreignId: string;
   movieTitle: string;
@@ -245,6 +186,7 @@ type Exclusion = {
   id: number;
 };
 
+// Define the structure of a SystemStatus, providing information about the system's current status.
 type SystemStatus = {
   appName: string;
   instanceName: string;
@@ -278,11 +220,13 @@ type SystemStatus = {
   packageUpdateMechanism: string;
 };
 
+// Define the structure of a Tag, representing a tag in the system.
 type Tag = {
   label: string;
   id: number;
 };
 
+// Define the structure of a HealthCheck, representing health check details for the system.
 type HealthCheck = {
   source: string;
   type: string;
@@ -290,7 +234,7 @@ type HealthCheck = {
   wikiUrl: string;
 };
 
-// Define the inner `body` structure as a type
+// Define the inner `body` structure as a type for command payload.
 type CommandBody = {
   movieIds: number[];
   sendUpdatesToClient: boolean;
@@ -305,19 +249,18 @@ type CommandBody = {
   suppressMessages: boolean;
 };
 
-// Define the `CommandResource` type structure
+// Define the CommandResource type, which represents a command resource in the system.
 type CommandResource = {
   name: string;
   commandName: string;
   body: CommandBody;
-  priority: "low" | "normal" | "high"; // Assuming priority can only be one of these values
-  status: "queued" | "running" | "completed" | "failed"; // Assuming these are valid status values
-  result: "unknown" | "success" | "failure"; // Assuming result can be one of these values
-  queued: string; // ISO 8601 date string
-  trigger: string; // Assuming this is a string type, based on the example
+  priority: "low" | "normal" | "high";
+  status: "queued" | "running" | "completed" | "failed";
+  result: "unknown" | "success" | "failure";
+  queued: string;
+  trigger: string;
   sendUpdatesToClient: boolean;
   updateScheduledTask: boolean;
-  id: number;
 };
 
 export {
@@ -325,25 +268,17 @@ export {
   Tag,
   SystemStatus,
   Exclusion,
-  ExclusionList,
-  WhisparrStudio,
-  WhisparrPerformer,
+  Studio,
+  Performer,
   UnmappedFolder,
   RootFolder,
   QualityProfile,
-  FormatItem,
   Language,
   QualityItem,
   Quality,
-  CommandPayload,
-  ExclusionPayload,
-  StudioPayload,
-  PerformerPayload,
-  MoviePayload,
-  WhisparrCommandResponse,
-  WhisparrScene,
+  CommandResponse,
+  Scene,
   LookupSceneResponse,
-  Movie,
   Image,
   OriginalLanguage,
   CommandBody,
