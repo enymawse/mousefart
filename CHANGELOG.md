@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1-alpha.1](https://github.com/enymawse/mousefart/compare/mousefart-v0.2.0-alpha.1...mousefart-v0.2.1-alpha.1) (2026-03-10)
+
+
+### Bug Fixes
+
+* **scene:** preserve addOptions merge and validate pageSize ([#15](https://github.com/enymawse/mousefart/issues/15)) ([7a14184](https://github.com/enymawse/mousefart/commit/7a141848e178d5227de4d7c092353f816f27e696))
+
 ## [0.2.0-alpha.1](https://github.com/enymawse/mousefart/compare/mousefart-v0.1.0-alpha.1...mousefart-v0.2.0-alpha.1) (2026-03-10)
 
 
