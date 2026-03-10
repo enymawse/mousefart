@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/enymawse/mousefart/compare/mousefart-v0.2.2...mousefart-v0.2.3) (2026-03-10)
+
+
+### Bug Fixes
+
+* update for provenance ([7e0f749](https://github.com/enymawse/mousefart/commit/7e0f74945eed437a1acefdd84370f6f11ae34f3d))
+
 ## [0.2.2](https://github.com/enymawse/mousefart/compare/mousefart-v0.2.1-alpha.1...mousefart-v0.2.2) (2026-03-10)
 
 
