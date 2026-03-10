@@ -36,6 +36,10 @@ export class SceneService {
    * @returns A fully shaped request body for /movie/paged.
    */
   private buildPagedPayload(params: ScenePagedQuery = {}): ScenePagedRequest {
+    if (params.pageSize !== undefined && params.pageSize <= 0) {
+      throw new Error("pageSize must be greater than 0.");
+    }
+
     return {
       page: params.page ?? 1,
       pageSize: params.pageSize ?? 25,

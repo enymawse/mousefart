@@ -140,20 +140,21 @@ export class BaseService {
     this.ensureOptionsConfigured();
     try {
       const options = this.getOptions;
+      const { addOptions, ...dataWithoutAddOptions } = data;
       const addOptionsOverride =
-        typeof data.addOptions === "object" && data.addOptions !== null
-          ? (data.addOptions as Record<string, unknown>)
+        typeof addOptions === "object" && addOptions !== null
+          ? (addOptions as Record<string, unknown>)
           : {};
 
       const response = await this.http["post"]<T>(endpoint, {
         rootFolderPath: options.rootFolderPath,
         qualityProfileId: options.qualityProfile,
         tags: options.tags,
+        ...dataWithoutAddOptions,
         addOptions: {
           searchForMovie: options.searchOnAdd,
           ...addOptionsOverride,
         },
-        ...data,
       });
       return response.data;
     } catch (error) {
