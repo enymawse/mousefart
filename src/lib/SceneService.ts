@@ -150,34 +150,42 @@ export class SceneService {
   }
 
   /**
-   * Retrieves all scenes by walking all pages from /movie/paged.
+   * Iterates over paged scene responses from /movie/paged.
    * @param params - Optional pagination and sorting parameters excluding page.
-   * @returns All scene records returned by the paged endpoint.
+   * @yields Each page response in order.
    */
-  async getAllPaged(params: Omit<ScenePagedQuery, "page"> = {}): Promise<Scene[]> {
+  async *iteratePaged(
+    params: Omit<ScenePagedQuery, "page"> = {},
+  ): AsyncGenerator<ScenePagedResponse, void, void> {
     const firstPayload = this.buildPagedPayload({ ...params, page: 1 });
     const firstPage = await this.getPaged(firstPayload);
+    yield firstPage;
+
     const totalPages = Math.max(
       1,
       Math.ceil(firstPage.totalRecords / firstPayload.pageSize),
     );
 
-    if (totalPages === 1) {
-      return firstPage.records;
+    for (let page = 2; page <= totalPages; page += 1) {
+      yield await this.getPaged({
+        ...firstPayload,
+        page,
+      });
+    }
+  }
+
+  /**
+   * Retrieves all scenes by walking all pages from /movie/paged.
+   * @param params - Optional pagination and sorting parameters excluding page.
+   * @returns All scene records returned by the paged endpoint.
+   */
+  async getAllPaged(params: Omit<ScenePagedQuery, "page"> = {}): Promise<Scene[]> {
+    const scenes: Scene[] = [];
+
+    for await (const page of this.iteratePaged(params)) {
+      scenes.push(...page.records);
     }
 
-    const remainingPages = await Promise.all(
-      Array.from({ length: totalPages - 1 }, (_, index) =>
-        this.getPaged({
-          ...firstPayload,
-          page: index + 2,
-        }),
-      ),
-    );
-
-    return [
-      ...firstPage.records,
-      ...remainingPages.flatMap((page) => page.records),
-    ];
+    return scenes;
   }
 }
