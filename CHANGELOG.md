@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/enymawse/mousefart/compare/mousefart-v0.2.1-alpha.1...mousefart-v0.2.2) (2026-03-10)
+
+
+### Bug Fixes
+
+* **ci:** disable prerelease mode in release-please ([c999e92](https://github.com/enymawse/mousefart/commit/c999e9299ea5ec86431383f71e932a485ed29ae2))
+
 ## [0.2.1-alpha.1](https://github.com/enymawse/mousefart/compare/mousefart-v0.2.0-alpha.1...mousefart-v0.2.1-alpha.1) (2026-03-10)
 
 
