@@ -46,6 +46,47 @@ type SceneStatistics = {
   releaseGroups: string[];
 };
 
+// Define supported sort directions for paged API responses.
+type SortDirection = "ascending" | "descending";
+
+// Define a value type for paged endpoint filters.
+type ScenePagedFilterValue = string | number | boolean;
+
+// Define a filter object used by /movie/paged request payloads.
+type ScenePagedFilter = {
+  key: string;
+  type: string;
+  value: ScenePagedFilterValue;
+};
+
+// Define a generic paged API response wrapper.
+type PagedResponse<TRecord> = {
+  page: number;
+  pageSize: number;
+  sortKey: string;
+  sortDirection: SortDirection;
+  totalRecords: number;
+  records: TRecord[];
+};
+
+// Define query params accepted by the /movie/paged endpoint.
+type ScenePagedQuery = {
+  page?: number;
+  pageSize?: number;
+  sortKey?: string;
+  sortDirection?: SortDirection;
+  filters?: ScenePagedFilter[];
+};
+
+// Define the full payload required by /movie/paged.
+type ScenePagedRequest = {
+  page: number;
+  pageSize: number;
+  sortKey: string;
+  sortDirection: SortDirection;
+  filters: ScenePagedFilter[];
+};
+
 // Define the structure of a LookupSceneResponse, which contains movie data.
 type LookupSceneResponse = {
   foreignId: string;
@@ -56,7 +97,7 @@ type LookupSceneResponse = {
 // Define the structure of a Scene, which represents a scene in Whisparr.
 type Scene = {
   title: string;
-  code: string;
+  code?: string;
   originalLanguage: OriginalLanguage;
   sortTitle: string;
   alternateTitles: string[];
@@ -95,6 +136,9 @@ type Scene = {
   statistics: SceneStatistics;
   id: number;
 };
+
+// Define the paged scene response returned by /movie/paged.
+type ScenePagedResponse = PagedResponse<Scene>;
 
 // Define the structure of a CommandResponse, which contains data about a command in Whisparr.
 type CommandResponse = {
@@ -322,6 +366,13 @@ export {
   SceneRatings,
   SceneSearchCredit,
   SceneStatistics,
+  SortDirection,
+  ScenePagedFilterValue,
+  ScenePagedFilter,
+  PagedResponse,
+  ScenePagedQuery,
+  ScenePagedRequest,
+  ScenePagedResponse,
   CommandBody,
   CommandResource,
   Options,

@@ -1,5 +1,13 @@
 import { BaseService } from "./BaseService.js";
-import { CommandResource, LookupSceneResponse, Scene } from "../types/types.js";
+import {
+  CommandResource,
+  LookupSceneResponse,
+  Scene,
+  ScenePagedFilter,
+  ScenePagedQuery,
+  ScenePagedRequest,
+  ScenePagedResponse,
+} from "../types/types.js";
 
 const encode = encodeURIComponent;
 
@@ -13,6 +21,29 @@ export class SceneService {
    * @param base - The base service used for making API requests.
    */
   constructor(private base: BaseService) {}
+
+  private readonly defaultPagedFilters: ScenePagedFilter[] = [
+    {
+      key: "itemType",
+      type: "equal",
+      value: "scene",
+    },
+  ];
+
+  /**
+   * Builds a full request payload for the /movie/paged endpoint.
+   * @param params - Optional pagination, sorting, and filtering parameters.
+   * @returns A fully shaped request body for /movie/paged.
+   */
+  private buildPagedPayload(params: ScenePagedQuery = {}): ScenePagedRequest {
+    return {
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 25,
+      sortKey: params.sortKey ?? "sortTitle",
+      sortDirection: params.sortDirection ?? "ascending",
+      filters: params.filters ?? this.defaultPagedFilters,
+    };
+  }
 
   /**
    * Triggers a movie search command in Whisparr for the given movie IDs.
@@ -105,5 +136,48 @@ export class SceneService {
    */
   async delete(id: number): Promise<void> {
     return this.base.request("delete", `/movie/${id}`);
+  }
+
+  /**
+   * Retrieves a paged list of scenes from Whisparr.
+   * Uses the request payload expected by /movie/paged.
+   * @param params - Optional pagination, sorting, and filters.
+   * @returns A paged response containing Scene records.
+   */
+  async getPaged(params: ScenePagedQuery = {}): Promise<ScenePagedResponse> {
+    const payload = this.buildPagedPayload(params);
+    return this.base.request<ScenePagedResponse>("post", "/movie/paged", payload);
+  }
+
+  /**
+   * Retrieves all scenes by walking all pages from /movie/paged.
+   * @param params - Optional pagination and sorting parameters excluding page.
+   * @returns All scene records returned by the paged endpoint.
+   */
+  async getAllPaged(params: Omit<ScenePagedQuery, "page"> = {}): Promise<Scene[]> {
+    const firstPayload = this.buildPagedPayload({ ...params, page: 1 });
+    const firstPage = await this.getPaged(firstPayload);
+    const totalPages = Math.max(
+      1,
+      Math.ceil(firstPage.totalRecords / firstPayload.pageSize),
+    );
+
+    if (totalPages === 1) {
+      return firstPage.records;
+    }
+
+    const remainingPages = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, index) =>
+        this.getPaged({
+          ...firstPayload,
+          page: index + 2,
+        }),
+      ),
+    );
+
+    return [
+      ...firstPage.records,
+      ...remainingPages.flatMap((page) => page.records),
+    ];
   }
 }
