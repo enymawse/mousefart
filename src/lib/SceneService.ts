@@ -79,19 +79,16 @@ export class SceneService {
     }
 
     const options = this.base.getOptions;
-    if (!options) {
-      throw new Error("Options have not been properly configured.");
-    }
 
     return this.base.add<Scene>("/movie", {
       title: result.movie.title,
       foreignId: result.movie.stashId,
       studio: result.movie.studioTitle,
-      qualityProfile: qualityProfile ?? options.qualityProfile,
+      qualityProfileId: qualityProfile ?? options.qualityProfile,
       monitored: true,
       tags: tags ?? options.tags,
       addOptions: {
-        searchOnAdd: searchOnAdd ?? options.searchOnAdd,
+        searchForMovie: searchOnAdd ?? options.searchOnAdd,
       },
     });
   }

@@ -28,8 +28,8 @@ export class BaseService {
     return this.options !== undefined && this.options !== null;
   }
 
-  get getOptions() {
-    if (this.optionsConfigured) {
+  get getOptions(): Options {
+    if (this.optionsConfigured && this.options) {
       return this.options;
     }
     throw new Error("Options have not been properly configured.");
@@ -136,17 +136,24 @@ export class BaseService {
    * @returns A promise resolving to the response data.
    * @throws {ApiError | NetworkError | Error} - Throws an error if the request fails.
    */
-  async add<T>(endpoint: string, data: object): Promise<T> {
+  async add<T>(endpoint: string, data: Record<string, unknown>): Promise<T> {
     this.ensureOptionsConfigured();
     try {
+      const options = this.getOptions;
+      const addOptionsOverride =
+        typeof data.addOptions === "object" && data.addOptions !== null
+          ? (data.addOptions as Record<string, unknown>)
+          : {};
+
       const response = await this.http["post"]<T>(endpoint, {
-        ...data,
-        rootFolderPath: this.options?.rootFolderPath,
-        qualityProfileId: this.options?.qualityProfile,
+        rootFolderPath: options.rootFolderPath,
+        qualityProfileId: options.qualityProfile,
+        tags: options.tags,
         addOptions: {
-          searchForMovie: this.options?.searchOnAdd,
+          searchForMovie: options.searchOnAdd,
+          ...addOptionsOverride,
         },
-        tags: this.options?.tags,
+        ...data,
       });
       return response.data;
     } catch (error) {
