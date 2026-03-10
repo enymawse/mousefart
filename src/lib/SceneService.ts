@@ -1,5 +1,13 @@
 import { BaseService } from "./BaseService.js";
-import { CommandResource, LookupSceneResponse, Scene } from "../types/types.js";
+import {
+  CommandResource,
+  LookupSceneResponse,
+  Scene,
+  ScenePagedFilter,
+  ScenePagedQuery,
+  ScenePagedRequest,
+  ScenePagedResponse,
+} from "../types/types.js";
 
 const encode = encodeURIComponent;
 
@@ -13,6 +21,29 @@ export class SceneService {
    * @param base - The base service used for making API requests.
    */
   constructor(private base: BaseService) {}
+
+  private readonly defaultPagedFilters: ScenePagedFilter[] = [
+    {
+      key: "itemType",
+      type: "equal",
+      value: "scene",
+    },
+  ];
+
+  /**
+   * Builds a full request payload for the /movie/paged endpoint.
+   * @param params - Optional pagination, sorting, and filtering parameters.
+   * @returns A fully shaped request body for /movie/paged.
+   */
+  private buildPagedPayload(params: ScenePagedQuery = {}): ScenePagedRequest {
+    return {
+      page: params.page ?? 1,
+      pageSize: params.pageSize ?? 25,
+      sortKey: params.sortKey ?? "sortTitle",
+      sortDirection: params.sortDirection ?? "ascending",
+      filters: params.filters ?? this.defaultPagedFilters,
+    };
+  }
 
   /**
    * Triggers a movie search command in Whisparr for the given movie IDs.
@@ -32,31 +63,52 @@ export class SceneService {
    * @param stashId - The unique foreign ID of the scene.
    * @returns The added Scene object.
    */
-  async add(stashId: string): Promise<Scene> {
-    return this.base
-      .request<LookupSceneResponse[]>(
-        "get",
-        `/lookup/scene?term=stash:${encode(stashId)}`
-      )
-      .then((response) => response[0].movie)
-      .then((scene) => {
-        return this.base.add<Scene>("/movie", {
-          title: scene.title,
-          foreignId: scene.foreignId,
-          monitored: true,
-        });
-      });
+  async add(
+    stashId: string,
+    qualityProfile: number | undefined = undefined,
+    tags: number[] | undefined = undefined,
+    searchOnAdd: boolean | undefined = undefined,
+  ): Promise<Scene> {
+    const [result] = await this.base.request<LookupSceneResponse[]>(
+      "get",
+      `/lookup/scene?term=stash:${encode(stashId)}`,
+    );
+
+    if (!result?.movie) {
+      throw new Error(`${stashId} was not found in scene lookup results.`);
+    }
+
+    const options = this.base.getOptions;
+
+    return this.base.add<Scene>("/movie", {
+      title: result.movie.title,
+      foreignId: result.movie.stashId,
+      studio: result.movie.studioTitle,
+      qualityProfileId: qualityProfile ?? options.qualityProfile,
+      monitored: true,
+      tags: tags ?? options.tags,
+      addOptions: {
+        searchForMovie: searchOnAdd ?? options.searchOnAdd,
+      },
+    });
   }
 
   /**
    * Adds multiple scenes to Whisparr using an array of stashIds.
    * @param stashIds - An array of foreign IDs representing scenes.
-   * @returns An array of promises resolving to Scene objects.
+   * @returns A promise resolving to an array of Scene objects.
    */
-  addAll(stashIds: string[]): Promise<Scene>[] {
-    return stashIds.map(async (stashId) => {
-      return this.add(stashId);
-    });
+  async addAll(
+    stashIds: string[],
+    qualityProfile: number | undefined = undefined,
+    tags: number[] | undefined = undefined,
+    searchOnAdd: boolean | undefined = undefined,
+  ): Promise<Scene[]> {
+    return Promise.all(
+      stashIds.map((stashId) =>
+        this.add(stashId, qualityProfile, tags, searchOnAdd),
+      ),
+    );
   }
 
   /**
@@ -81,5 +133,56 @@ export class SceneService {
    */
   async delete(id: number): Promise<void> {
     return this.base.request("delete", `/movie/${id}`);
+  }
+
+  /**
+   * Retrieves a paged list of scenes from Whisparr.
+   * Uses the request payload expected by /movie/paged.
+   * @param params - Optional pagination, sorting, and filters.
+   * @returns A paged response containing Scene records.
+   */
+  async getPaged(params: ScenePagedQuery = {}): Promise<ScenePagedResponse> {
+    const payload = this.buildPagedPayload(params);
+    return this.base.request<ScenePagedResponse>("post", "/movie/paged", payload);
+  }
+
+  /**
+   * Iterates over paged scene responses from /movie/paged.
+   * @param params - Optional pagination and sorting parameters excluding page.
+   * @yields Each page response in order.
+   */
+  async *iteratePaged(
+    params: Omit<ScenePagedQuery, "page"> = {},
+  ): AsyncGenerator<ScenePagedResponse, void, void> {
+    const firstPayload = this.buildPagedPayload({ ...params, page: 1 });
+    const firstPage = await this.getPaged(firstPayload);
+    yield firstPage;
+
+    const totalPages = Math.max(
+      1,
+      Math.ceil(firstPage.totalRecords / firstPayload.pageSize),
+    );
+
+    for (let page = 2; page <= totalPages; page += 1) {
+      yield await this.getPaged({
+        ...firstPayload,
+        page,
+      });
+    }
+  }
+
+  /**
+   * Retrieves all scenes by walking all pages from /movie/paged.
+   * @param params - Optional pagination and sorting parameters excluding page.
+   * @returns All scene records returned by the paged endpoint.
+   */
+  async getAllPaged(params: Omit<ScenePagedQuery, "page"> = {}): Promise<Scene[]> {
+    const scenes: Scene[] = [];
+
+    for await (const page of this.iteratePaged(params)) {
+      scenes.push(...page.records);
+    }
+
+    return scenes;
   }
 }
