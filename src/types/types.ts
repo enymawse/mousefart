@@ -24,6 +24,28 @@ type Image = {
   remoteUrl: string;
 };
 
+// Define the structure of a SceneRating object from provider-specific rating sources.
+type SceneRating = {
+  votes: number;
+  value: number;
+  type: string;
+};
+
+// Define a map of provider names to their rating objects.
+type SceneRatings = Record<string, SceneRating>;
+
+// Define the structure of search credit entries returned by Whisparr.
+type SceneSearchCredit = {
+  [key: string]: unknown;
+};
+
+// Define scene statistics metadata.
+type SceneStatistics = {
+  movieFileCount: number;
+  sizeOnDisk: number;
+  releaseGroups: string[];
+};
+
 // Define the structure of a LookupSceneResponse, which contains movie data.
 type LookupSceneResponse = {
   foreignId: string;
@@ -34,28 +56,43 @@ type LookupSceneResponse = {
 // Define the structure of a Scene, which represents a scene in Whisparr.
 type Scene = {
   title: string;
+  code: string;
+  originalLanguage: OriginalLanguage;
   sortTitle: string;
+  alternateTitles: string[];
   sizeOnDisk: number;
   status: string;
   overview: string;
   releaseDate: string;
+  images: Image[];
+  website: string;
   year: number;
   studioTitle: string;
   studioForeignId: string;
   path: string;
   qualityProfileId: number;
   hasFile: boolean;
+  movieFileId: number;
   monitored: boolean;
-  isAvailable: true;
+  isAvailable: boolean;
   folderName: string;
   runtime: number;
+  cleanTitle: string;
+  tmdbId: number;
+  foreignId: string;
   stashId: string;
   titleSlug: string;
-  rootFolderPath: string;
+  rootFolderPath?: string;
   genres: string[];
-  tags: Tag[];
+  tags: number[];
   added: string;
-  foreignId: string;
+  ratings: SceneRatings;
+  searchCredits: SceneSearchCredit[];
+  performerForeignIds: string[];
+  performerNames: string[];
+  itemType: "scene";
+  lastSearchTime: string;
+  statistics: SceneStatistics;
   id: number;
 };
 
@@ -281,6 +318,10 @@ export {
   LookupSceneResponse,
   Image,
   OriginalLanguage,
+  SceneRating,
+  SceneRatings,
+  SceneSearchCredit,
+  SceneStatistics,
   CommandBody,
   CommandResource,
   Options,
