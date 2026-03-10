@@ -28,6 +28,13 @@ export class BaseService {
     return this.options !== undefined && this.options !== null;
   }
 
+  get getOptions() {
+    if (this.optionsConfigured) {
+      return this.options;
+    }
+    throw new Error("Options have not been properly configured.");
+  }
+
   /**
    * Handles errors that occur during HTTP requests.
    * Differentiates between API errors, network errors, and unknown errors.
@@ -49,7 +56,7 @@ export class BaseService {
       } else {
         // Other Axios-related errors
         throw new NetworkError(
-          error.message || "An error occurred while setting up the request."
+          error.message || "An error occurred while setting up the request.",
         );
       }
     } else {
@@ -106,7 +113,7 @@ export class BaseService {
   async request<T>(
     method: "get" | "post" | "put" | "delete",
     endpoint: string,
-    data?: object
+    data?: object,
   ): Promise<T> {
     try {
       const config = data ? data : undefined;

@@ -32,31 +32,55 @@ export class SceneService {
    * @param stashId - The unique foreign ID of the scene.
    * @returns The added Scene object.
    */
-  async add(stashId: string): Promise<Scene> {
-    return this.base
-      .request<LookupSceneResponse[]>(
-        "get",
-        `/lookup/scene?term=stash:${encode(stashId)}`
-      )
-      .then((response) => response[0].movie)
-      .then((scene) => {
-        return this.base.add<Scene>("/movie", {
-          title: scene.title,
-          foreignId: scene.foreignId,
-          monitored: true,
-        });
-      });
+  async add(
+    stashId: string,
+    qualityProfile: number | undefined = undefined,
+    tags: number[] | undefined = undefined,
+    searchOnAdd: boolean | undefined = undefined,
+  ): Promise<Scene> {
+    const [result] = await this.base.request<LookupSceneResponse[]>(
+      "get",
+      `/lookup/scene?term=stash:${encode(stashId)}`,
+    );
+
+    if (!result?.movie) {
+      throw new Error(`${stashId} was not found in scene lookup results.`);
+    }
+
+    const options = this.base.getOptions;
+    if (!options) {
+      throw new Error("Options have not been properly configured.");
+    }
+
+    return this.base.add<Scene>("/movie", {
+      title: result.movie.title,
+      foreignId: result.movie.stashId,
+      studio: result.movie.studioTitle,
+      qualityProfile: qualityProfile ?? options.qualityProfile,
+      monitored: true,
+      tags: tags ?? options.tags,
+      addOptions: {
+        searchOnAdd: searchOnAdd ?? options.searchOnAdd,
+      },
+    });
   }
 
   /**
    * Adds multiple scenes to Whisparr using an array of stashIds.
    * @param stashIds - An array of foreign IDs representing scenes.
-   * @returns An array of promises resolving to Scene objects.
+   * @returns A promise resolving to an array of Scene objects.
    */
-  addAll(stashIds: string[]): Promise<Scene>[] {
-    return stashIds.map(async (stashId) => {
-      return this.add(stashId);
-    });
+  async addAll(
+    stashIds: string[],
+    qualityProfile: number | undefined = undefined,
+    tags: number[] | undefined = undefined,
+    searchOnAdd: boolean | undefined = undefined,
+  ): Promise<Scene[]> {
+    return Promise.all(
+      stashIds.map((stashId) =>
+        this.add(stashId, qualityProfile, tags, searchOnAdd),
+      ),
+    );
   }
 
   /**
